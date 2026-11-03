@@ -1,0 +1,41 @@
+name: Deploy Mind Lamp
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-mindlamp
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+
+            DEPLOY_ROOT="${{ secrets.VPS_DEPLOY_ROOT || '/opt/apps/deploy' }}"
+            APP_DIR="$DEPLOY_ROOT/apps/mindlamp"
+            INFRA_DIR="$DEPLOY_ROOT/infrastructure"
+
+            cd "$APP_DIR"
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+
+            cd "$INFRA_DIR"
+            test -f .env
+            docker compose --env-file .env -f shared.compose.yml -f apps.compose.yml up -d --build mindlamp-web
+            docker image prune -f
+            docker ps --filter name=mindlamp-web --format "table {{.Names}}\t{{.Status}}"
