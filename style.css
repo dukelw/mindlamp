@@ -122,6 +122,7 @@ mark { background: var(--accent-soft); color: inherit; border-radius: 4px; paddi
 
 @media (max-width: 520px) {
   .verse { grid-template-columns: 2.4rem 1fr; }
+  .verse.learn-card { grid-template-columns: 1fr; padding: 1.2rem 1rem; }
   .verse .acts { grid-column: 2; flex-direction: row; flex-wrap: wrap; }
   .brand span:last-child { font-size: 1rem; }
   .tools button#btn-random { font-size: .78rem; }
